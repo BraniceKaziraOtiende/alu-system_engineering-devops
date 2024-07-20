@@ -1,20 +1,31 @@
 #!/usr/bin/env bash
-# bash script to install nginx web server & make the following configurations:
+# Configures a new Ubuntu machine by installing
+# Nginx, setting it to listen on port 80, and
+# serving a page that contains "Holberton School"
 
-sudo apt-get update
-sudo apt-get -y install nginx
+echo -e "Updating and installing Nginx.\n"
+sudo apt-get update -y -qq && \
+     sudo apt-get install nginx -y
 
-# Create a custom HTML page with the content "Holberton School"
-echo "Holberton School" | sudo tee /var/www/html/index.html > /dev/null
+echo -e "\nSetting up some minor stuff.\n"
 
-# Configure Nginx to listen on port 80
-sudo sed -i 's/80 default_server/80 default_server ipv6only=on/' /etc/nginx/sites-available/default
+# Starting Nginx service
+sudo service nginx start
 
-# Restart Nginx using service (systemctl not used)
-sudo service nginx restart
+# Allowing Nginx through the firewall
+sudo ufw allow 'Nginx HTTP'
 
-# Wait for Nginx to restart (add a delay of 2 seconds)
-sleep 2
+# Give the user ownership of website files for easy editing
+sudo chown -R "$USER":"$USER" /var/www/html
+sudo chmod -R 755 /var/www
 
-# Check if Nginx returns the expected content
-curl -s http://localhost | grep "Holberton School"
+# Backup the default index.html
+cp /var/www/html/index.nginx-debian.html /var/www/html/index.nginx-debian.html.bckp
+
+# Creating new index.html with required content
+echo -e "Holberton School for the win!" > /var/www/html/index.nginx-debian.html
+
+# Reloading Nginx to apply changes (not using systemctl)
+sudo nginx -s reload
+
+echo -e "\nCompleted. ✅\n"
